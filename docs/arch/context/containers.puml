@@ -1,0 +1,21 @@
+@startuml
+footer: App version: 0.1.0
+!include <C4/C4_Container>
+
+Person(maker, "Maker", "A person who builds projects using 3D-printing. Makers deploy, maintain, and use the application.")
+
+Boundary(printtables, "Printtables") {
+    Container(api, "API service", "Axum", "Manages projects and inventory. Keeps track of projects.")
+    Container(tui, "TUI client", "", "Allows managing and viewing projects and inventory on the same machine.")
+    Container(webui, "Web UI", "", "Allows managing and viewing projects and inventory from other machines.")
+    ContainerDb("db", "Database", "SQLite", "Stores projects and inventory information.")
+}
+
+Rel(maker, webui, "manages projects via")
+Rel(maker, tui, "manages projects via")
+
+Rel(webui, api, "manages projects in")
+Rel(api, db, "stores data in")
+Rel(tui, db, "stores data in")
+
+@enduml

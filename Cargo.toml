@@ -7,4 +7,12 @@ description = "Tracker for multipart 3D-printing projects"
 authors = ["Dmytro Kovalchuk <dimasmith@gmail.com>"]
 homepage = "https://dimasmith.github.io/printtables/"
 
+[[bin]]
+name = "printtables-ui"
+path = "src/bin/tui.rs"
+
+[[bin]]
+name = "printtables-server"
+path = "src/bin/server.rs"
+
 [dependencies]
