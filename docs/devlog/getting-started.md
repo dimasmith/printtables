@@ -74,3 +74,27 @@ Individual domain routes are still planned for the respective modules.
       +-- rest
           +-- routes
 ```
+
+### Cross-compiling
+
+The main target platform for printtables is Raspberry Pi.
+In a few previous projects I used [Cross](https://github.com/cross-rs/cross) to cross-compile binaries on my development machine.
+Printtables is not an exception - I'll use the same tooling here.
+
+The `build` directory has barebones dockerfile for aarch64 architecture.
+It's possible to use any image with Cross, however their images seem to have almost no issues with dependencies.
+I used debian:bookworm before, but run into notorious issues with OpenSSL.
+
+Another part of the cross-compiling recipe is a Cross configuration.
+Check the `Cross.toml` in the project root.
+My configuration points to the dockerfile. 
+Cross will build an image during the compilation.
+Another way, which might be more performant, is to build the image from the file and refer to it.
+However, using the dockerfile is so convenient, that I decided to postpone optimisations.
+
+Cross works like a replacement for Cargo for some build tasks.
+For example, building the project for Raspberry Pi can be done with the following command.
+
+```shell
+cross build --target aarch64-unknown-linux-gnu --release
+```
