@@ -1,0 +1,9 @@
+[package]
+name = "printtables"
+version = "0.1.0-alpha.0"
+edition = "2021"
+license = "MIT"
+description = "Tracker for multipart 3D-printing projects"
+authors = ["Dmytro Kovalchuk <dimasmith@gmail.com>"]
+
+[dependencies]
