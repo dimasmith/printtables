@@ -19,6 +19,11 @@ path = "src/bin/server.rs"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 axum = { version = "0.7.7" }
 anyhow = "1"
+tracing = { version = "0.1", features = ["log"] }
+tracing-log = "0.2.0"
+tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }
+tower = "0.5.1"
+tower-http = { version = "0.6.1", features = ["trace"] }
 
 [dev-dependencies]
 reqwest = "0.12"
