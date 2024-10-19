@@ -16,3 +16,9 @@ name = "printtables-server"
 path = "src/bin/server.rs"
 
 [dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+axum = { version = "0.7.7" }
+anyhow = "1"
+
+[dev-dependencies]
+reqwest = "0.12"

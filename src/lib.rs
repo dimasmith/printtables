@@ -9,3 +9,4 @@
 //! plans completion.
 pub mod inventory;
 pub mod projects;
+pub mod server;
