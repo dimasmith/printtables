@@ -96,3 +96,28 @@ Any other platform support is not guaranteed.
 ### `0.2.0` - Table tracking
 
 This version should support project scheduling and table management.
+
+## Building
+
+### Cross-compiling for Raspberry Pi
+
+It takes a long time to compile directly on Raspberry Pi. 
+Usually, it is more effective to use development machine for cross-compilation.
+
+#### Prerequisites
+
+You need to have Docker and [Cross](https://github.com/cross-rs/cross) installed on your machine.
+
+> [!TIP]
+> Install cross with `cargo install cross`
+
+ #### Compiling
+
+Now you can build the project using cross.
+
+```shell
+cross build --target aarch64-unknown-linux-gnu --release
+```
+
+The `target/aarch64-unknown-linux-gnu` now contains `printables-ui` and `printables-server` binaries.
+Copy them to your Raspberry Pi and you can now run printtables.
