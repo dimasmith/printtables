@@ -8,3 +8,4 @@ First and foremost the `printtables` is a Rust programming exercise.
 So the notes here, we hope, will be helpful as a source of troubleshooting and establishing decisions context.
 
 - [Getting started](getting-started.md)
+- [First use cases](first-use-cases.md)
