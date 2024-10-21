@@ -27,3 +27,123 @@ Question on project states.
 - What are the transitions between states?
 - Do states belong to a project itself, or are they a part of other concept, e.g., progress?
 
+I'll deal with statuses later. For now, let's focus on the creation itself.
+
+### Implementing services and repositories
+
+I want an application service to handle project use cases.
+One component it needs is a repository to store projects.
+The more-or-less standard approach is to have a service parametrised with the repository.
+
+```rust
+pub struct ProjectService<R> {
+    repository: R,
+}
+```
+
+The thing is, if I decide to pick another implementation of a repository, I'll have to change all clients of the service.
+The `ProjectService<SQLiteRepository> and ProjectService<InMemoryRepository>` are different types.
+
+So I decided to introduce yet another trait for the service itself.
+
+```rust
+pub trait ProjectService {
+    fn create_project(&self, name: String) -> Result<Project, Error>;
+}
+
+pub struct DefaultProjectService<R: ProjectRepository> {
+    repository: Arc<R>,
+}
+```
+
+This way I can hide the actual repository type I use.
+Not the most elegant solution.
+I think I'll have to revisit it later.
+However, it should be good enough for now.
+
+I'm postponing dealing with `sqlx` and trying to create an in-memory repository first. And here's where the simplest approach was not the best one.
+
+```rust
+pub trait ProjectRepository {
+    fn create(&mut self, project: Project) -> Result<Project, Error>;
+}
+
+pub struct InMemoryProjectRepository {
+    projects: HashMap<Uuid, Project>,
+}
+```
+
+Note that the `create` method requires mutable reference to the repository.
+
+And here is a service.
+
+```rust
+pub struct DefaultProjectService<R: ProjectRepository> {
+    repository: Arc<R>,
+}
+
+impl<R: ProjectRepository> ProjectService for DefaultProjectService<R> {
+    fn create_project(&self, name: String) -> Result<Project, Error> {
+        let project = Project {
+            id: Uuid::new_v4(),
+            name,
+            status: ProjectStatus::New,
+        };
+
+        self.repository.create(project)
+    }
+}
+```
+
+The `self.repository.create(project)` call won't compile.
+I cannot get a mutable reference to the repository from `Arc`.
+
+I could use `Mutex` or `RwLock` to wrap the repository.
+That, however, would require me to lock the repository every time I want to use it.
+And it will severely limit the number of concurrent operations.
+
+It's not a problem, actually. Remember, printtables is a single-user self-hosted application. 
+Still, I don't like this approach.
+
+Instead of this, I'll use interior mutability pattern in the in-memory repository.
+
+```rust
+pub trait ProjectRepository {
+    fn create(&self, project: Project) -> Result<Project, Error>;
+}
+
+pub struct InMemoryProjectsRepository {
+    storage: Mutex<HashMap<ProjectId, Project>>,
+}
+
+impl ProjectRepository for InMemoryProjectsRepository {
+    async fn create(&self, project: Project) -> anyhow::Result<ProjectId> {
+        let mut storage = self.storage.lock().await;
+        let id = project.id();
+        storage.insert(id, project);
+        Ok(id)
+    }
+}
+```
+
+Now that compiles ok.
+
+The `sqlx` uses internal mutability as well, so my repository trait should be compatible with the real implementation.
+
+Yes, the in-memory repository is locked on every operation.
+But as it won't be used in production, I don't care too much.
+
+### Async trait crate
+
+I must confess that I do not completely understand the magic of a `async_trait` crate.
+So I refused to use it and went with #[allow(async_fn_in_trait)].
+That worked well until I tried to use the service in the REST handler.
+
+```rust
+async fn register_project(State(project_service): State<Arc<dyn ProjectService>>) {}
+```
+
+Compiler stopped me saying that the traits with async methods are not object-safe. 
+So this trick won't work. 
+The `async_trait` crate for the rescue once again :)
+
