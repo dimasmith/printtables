@@ -147,3 +147,17 @@ Compiler stopped me saying that the traits with async methods are not object-saf
 So this trick won't work. 
 The `async_trait` crate for the rescue once again :)
 
+### Implementing endpoints
+
+Everything is simpler if you first read the documentation and experimenting afterwards.
+That's not how I do things unfortunately. But even that did not get in a way of implementation.
+
+Handlers are functions accepting extractors and returning responses.
+You just need to pick extractors working for you. 
+I have a few pieces missing in the error handling still.
+One prominent issue is the 500 response when the project is not found.
+It's because I decided to have a dedicated error in the service to mark this situation.
+I did not implement that yet, so it should be one of the next points.
+The project repository has the separation, as it returns the `Result<Option<Project>>`.
+It's tempting to get things right, but I'll postpone it and will take care of real database access.
+This may end up in changing repository trait a bit.
