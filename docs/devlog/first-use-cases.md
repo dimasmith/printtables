@@ -161,3 +161,7 @@ I did not implement that yet, so it should be one of the next points.
 The project repository has the separation, as it returns the `Result<Option<Project>>`.
 It's tempting to get things right, but I'll postpone it and will take care of real database access.
 This may end up in changing repository trait a bit.
+
+But wait. On the other hand - when was the last time I created a test? 
+I now have an interface to test my first use case.
+Off to testing!
