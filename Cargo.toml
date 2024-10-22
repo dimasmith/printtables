@@ -30,4 +30,5 @@ async-trait = "0.1.83"
 serde = { version = "1.0.212", features = ["derive"] }
 
 [dev-dependencies]
-reqwest = "0.12"
+reqwest = { version = "0.12", features = [ "json" ] }
+fake = "2.10.0"
