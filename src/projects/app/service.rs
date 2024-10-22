@@ -3,7 +3,7 @@
 use core::str;
 use async_trait::async_trait;
 use tracing::info;
-use std::{borrow::BorrowMut, sync::Arc};
+use std::sync::Arc;
 
 use crate::projects::domain::project::{Project, ProjectId, ProjectRepository};
 
