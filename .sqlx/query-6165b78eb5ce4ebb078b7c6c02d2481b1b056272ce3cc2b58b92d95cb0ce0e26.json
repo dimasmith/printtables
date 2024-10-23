@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        select id as \"id: Uuid\", name, created_at \n        from project\n        where id = ?\n            ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id: Uuid",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 2,
+        "type_info": "Datetime"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "6165b78eb5ce4ebb078b7c6c02d2481b1b056272ce3cc2b58b92d95cb0ce0e26"
+}
