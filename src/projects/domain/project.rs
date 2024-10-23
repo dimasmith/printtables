@@ -1,8 +1,7 @@
+use super::name::Name;
 use async_trait::async_trait;
 use chrono::{Local, NaiveDateTime};
 use uuid::Uuid;
-
-use super::name::Name;
 
 pub type ProjectId = Uuid;
 
@@ -18,6 +17,10 @@ impl Project {
     pub fn new(name: Name) -> Self {
         let id = Uuid::now_v7();
         let created_at = Local::now().naive_local();
+        Project::full(id, name, created_at)
+    }
+
+    pub fn full(id: ProjectId, name: Name, created_at: NaiveDateTime) -> Self {
         Self {
             id,
             name,
