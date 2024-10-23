@@ -58,6 +58,12 @@ impl Display for Name {
     }
 }
 
+impl Default for Name {
+    fn default() -> Self {
+        Name("Unnamed".to_string())
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
