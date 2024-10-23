@@ -21,7 +21,7 @@ pub async fn start_test_server() -> anyhow::Result<TestServer> {
 
     let test_listener = TcpListener::bind("0.0.0.0:0").await?;
     let port = &test_listener.local_addr()?.port();
-    let app_router = router();
+    let app_router = router().await;
     let test_server = axum::serve(test_listener, app_router);
     tokio::spawn(test_server.into_future());
     Ok(TestServer { port: *port })
