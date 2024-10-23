@@ -2,3 +2,13 @@
 
 .idea/
 .vscode/
+
+# development database
+*.db
+*.db-shm
+*.db-wal
+
+# environment file
+#
+# make sure to create your own by copying and modifying the .env.example
+.env

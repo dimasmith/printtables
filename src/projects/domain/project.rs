@@ -1,6 +1,6 @@
+use async_trait::async_trait;
 use chrono::{Local, NaiveDateTime};
 use uuid::Uuid;
-use async_trait::async_trait;
 
 pub type ProjectId = Uuid;
 
@@ -16,6 +16,10 @@ impl Project {
     pub fn new(name: String) -> Self {
         let id = Uuid::now_v7();
         let created_at = Local::now().naive_local();
+        Project::full(id, name, created_at)
+    }
+
+    pub fn full(id: ProjectId, name: String, created_at: NaiveDateTime) -> Self {
         Self {
             id,
             name,
@@ -42,7 +46,6 @@ impl Project {
 /// This trait must be implemented in the infrastructure layer.
 #[async_trait]
 pub trait ProjectRepository: Send + Sync {
-    
     /// Store a new instance of project in storage.
     async fn create(&self, project: Project) -> anyhow::Result<ProjectId>;
 
@@ -50,5 +53,5 @@ pub trait ProjectRepository: Send + Sync {
     /// The implementation must return Ok(None) if the project is not found.
     /// The Err(_) result is for underlying storage communication errors.
     async fn find_by_id(&self, id: ProjectId) -> anyhow::Result<Option<Project>>;
-
 }
+

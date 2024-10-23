@@ -4,16 +4,25 @@ use std::sync::Arc;
 
 use crate::projects::app::service::DefaultProjectService;
 use crate::projects::infra::axum::{register_project, view_project};
-use crate::projects::infra::memory::InMemoryProjectsRepository;
+use crate::projects::infra::sqlx::project_repository::SqlxProjectRepository;
 use crate::server::routes::health::health;
 use axum::routing::{get, post};
 use axum::Router;
+use sqlx::SqlitePool;
 use tower::ServiceBuilder;
 use tower_http::trace::TraceLayer;
 
 /// Provide a default router for HTTP requests.
-pub fn router() -> Router {
-    let project_repo = InMemoryProjectsRepository::default();
+pub async fn router() -> Router {
+    // initialize database connection
+    let db_url = dotenvy::var("DATABASE_URL").unwrap_or_else(|_| "sqlite:dev.db".to_string());
+    // TODO: fix error reporting
+    let db_pool = SqlitePool::connect(&db_url)
+        .await
+        .expect("failed to connect to database");
+
+    // let project_repo = InMemoryProjectsRepository::default();
+    let project_repo = SqlxProjectRepository::new(db_pool);
     let project_service = DefaultProjectService::new(Arc::new(project_repo));
 
     Router::new()

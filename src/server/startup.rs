@@ -15,7 +15,7 @@ pub async fn start_server(listener: TcpListener) -> anyhow::Result<()> {
 
     subscriber.init();
 
-    let app = router();
+    let app = router().await;
     axum::serve(listener, app).await?;
     Ok(())
 }
