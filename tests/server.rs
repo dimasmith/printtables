@@ -1,11 +1,6 @@
-use printtables::server::routes::router::router;
+use printtables::server::startup::start_server;
 use std::future::IntoFuture;
 use tokio::net::TcpListener;
-use tracing::level_filters::LevelFilter;
-use tracing::Level;
-use tracing_subscriber::fmt;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::util::SubscriberInitExt;
 
 // Common code to handle printtables server
 pub struct TestServer {
@@ -13,17 +8,10 @@ pub struct TestServer {
 }
 
 pub async fn start_test_server() -> anyhow::Result<TestServer> {
-    let subscriber = tracing_subscriber::registry()
-        .with(LevelFilter::from_level(Level::TRACE))
-        .with(fmt::Layer::default());
-
-    subscriber.init();
-
     let test_listener = TcpListener::bind("0.0.0.0:0").await?;
     let port = &test_listener.local_addr()?.port();
-    let app_router = router();
-    let test_server = axum::serve(test_listener, app_router);
-    tokio::spawn(test_server.into_future());
+    let server = start_server(test_listener);
+    tokio::spawn(server.into_future());
     Ok(TestServer { port: *port })
 }
 

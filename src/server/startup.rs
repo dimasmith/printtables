@@ -1,21 +1,26 @@
 //! Starts the server.
 
+use std::sync::{Arc, LazyLock};
+
+use crate::projects::app::service::{DefaultProjectService, ProjectsService};
+use crate::projects::infra::memory::InMemoryProjectsRepository;
 use crate::server::routes::router::router;
 use tokio::net::TcpListener;
-use tracing::level_filters::LevelFilter;
-use tracing::Level;
-use tracing_subscriber::fmt;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::util::SubscriberInitExt;
+
+use super::tracing::initialize_tracing;
+
+static TRACING: LazyLock<()> = LazyLock::new(|| {
+    initialize_tracing();
+});
 
 pub async fn start_server(listener: TcpListener) -> anyhow::Result<()> {
-    let subscriber = tracing_subscriber::registry()
-        .with(LevelFilter::from_level(Level::TRACE))
-        .with(fmt::Layer::default());
+    LazyLock::force(&TRACING);
 
-    subscriber.init();
+    let project_repo = InMemoryProjectsRepository::default();
+    let project_service = DefaultProjectService::new(Arc::new(project_repo));
+    let shared_project_service: Arc<dyn ProjectsService> = Arc::new(project_service);
 
-    let app = router();
+    let app = router(shared_project_service);
     axum::serve(listener, app).await?;
     Ok(())
 }
