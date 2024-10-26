@@ -17,16 +17,17 @@ path = "src/bin/server.rs"
 
 [dependencies]
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
-axum = { version = "0.7.7" }
+axum = { version = "0.7.7", features = ["json"] }
 anyhow = "1"
 tracing = { version = "0.1", features = ["log"] }
 tracing-log = "0.2.0"
 tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }
 tower = "0.5.1"
 tower-http = { version = "0.6.1", features = ["trace"] }
-uuid = { version = "1.11.0", features = ["v7"] }
+uuid = { version = "1.11.0", features = ["v7", "serde"] }
 chrono = { version = "0.4.38", features = ["serde"] }
 async-trait = "0.1.83"
+serde = { version = "1.0.212", features = ["derive"] }
 
 [dev-dependencies]
 reqwest = "0.12"

@@ -3,9 +3,10 @@
 use std::sync::Arc;
 
 use crate::projects::app::service::DefaultProjectService;
+use crate::projects::infra::axum::{register_project, view_project};
 use crate::projects::infra::memory::InMemoryProjectsRepository;
 use crate::server::routes::health::health;
-use axum::routing::get;
+use axum::routing::{get, post};
 use axum::Router;
 use tower::ServiceBuilder;
 use tower_http::trace::TraceLayer;
@@ -17,5 +18,8 @@ pub fn router() -> Router {
 
     Router::new()
         .route("/health", get(health))
+        .route("/v1/projects", post(register_project))
+        .route("/v1/projects/:project_id", get(view_project))
+        .with_state(Arc::new(project_service))
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
 }
