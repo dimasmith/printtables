@@ -4,8 +4,8 @@
 
 use std::collections::HashMap;
 
-use tokio::sync::Mutex;
 use async_trait::async_trait;
+use tokio::sync::Mutex;
 
 use crate::projects::domain::project::{Project, ProjectId, ProjectRepository};
 
