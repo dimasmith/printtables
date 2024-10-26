@@ -1,7 +1,8 @@
 use fake::{faker::name::en::Name, Fake};
-use reqwest::StatusCode;
+use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use server::start_test_server;
+use uuid::Uuid;
 
 mod server;
 
@@ -62,6 +63,30 @@ async fn register_and_view_project() -> anyhow::Result<()> {
     assert_eq!(
         &project_view.name, &project_request.name,
         "project name is not the same as created project name"
+    );
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn viewing_missing_project_responds_404() -> anyhow::Result<()> {
+    let test_server = start_test_server().await?;
+
+    let fake_id = Uuid::now_v7();
+    let project_uri = format!("/v1/projects/{}", fake_id);
+    let project_uri = test_server.uri(&project_uri);
+
+    let rest_client = Client::new();
+    let response = rest_client
+        .get(project_uri)
+        .header("Accept", "application/json")
+        .send()
+        .await?;
+
+    assert_eq!(
+        response.status(),
+        StatusCode::NOT_FOUND,
+        "service must respond with 404 when viewing missing project"
     );
 
     Ok(())

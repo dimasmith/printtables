@@ -7,6 +7,7 @@ use axum::Json;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::projects::app::service::ProjectError;
 use crate::projects::domain::project::Project;
 use crate::projects::{app::service::ProjectsService, domain::project::ProjectId};
 
@@ -45,10 +46,12 @@ pub async fn view_project(
     Path(project_id): Path<Uuid>,
 ) -> Result<impl IntoResponse, StatusCode> {
     let project = project_service.view_project(project_id).await;
-    // TODO: add proper handling of missing projects.
     match project {
         Ok(p) => Ok(Json(ProjectResponse::from(p))),
-        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+        Err(e) => match e {
+            ProjectError::MissingProject => Err(StatusCode::NOT_FOUND),
+            _ => Err(StatusCode::INTERNAL_SERVER_ERROR),
+        },
     }
 }
 
