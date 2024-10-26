@@ -23,6 +23,7 @@ impl SqlxProjectRepository {
     }
 }
 
+// TODO: add transactions support
 #[async_trait]
 impl ProjectRepository for SqlxProjectRepository {
     async fn create(&self, project: Project) -> anyhow::Result<ProjectId> {
