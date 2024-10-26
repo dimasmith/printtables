@@ -199,3 +199,67 @@ struct ValidationError {
 
 Now it's a matter of implementing the `IntoResponse` trait for the error to present validation errors as responses with code 400.
 
+### Integration tests
+
+Well, tests are simple at that point. I'll reuse infrastructure from the health endpoint checks and it would be enough for now. At least until I'll start toying with database, which will happen soon.
+
+The scenario is simple:
+
+1. Create a new project using `POST /v1/projects`
+2. Read the project URI from the response's Location header.
+3. Retrieve the newly created project and check the details.
+
+The `reqwest` crate has helper methods to send JSON payloads and parse results.
+
+## Set up database
+
+With integration test in place it's safer to delve into database access.
+
+I'll use `sqlx` for this. Implementing repository traits is not too complicated. But before that I need to set up database connection.
+
+To get things running I'll follow the simplest approach for now. First - the `.env` file with the following content.
+
+```
+DATABASE_URL="sqlite:dev.db"
+```
+
+It sets the development database in the root of the project. The .env file is working for sqlx-cli and I can easily use it in the project code with a bit of help from the `dotenvy` crate.
+
+## Refactoring startup code 
+
+The test initializer in the `tests/server` now uses configured router and spawn `axum::serve` to start the application on a random port. It appears that the router is incorrect abstraction. I need to share startup logic between different starters with possibility to customize dependencies. Time to refactor.
+
+The tests should use `startup::start_server` instead. But there's an issue - the `tracing` subscriber gets initialized more than once, and application fails. I'll configure the initialization as a singleton.
+
+The `std::sync::LazyLock` is a suitable tool for that.
+
+```rust
+static TRACING: LazyLock<()> = LazyLock::new(|| {
+  // initialization goes here
+});
+
+async fn start_server() {
+  LazyLock::force(&TRACING); // initializes once
+}
+```
+
+Despite that I stumbled upon the same failure again. Quick glance into `test::server` made obvious, that duplicating log initialization there is not the brightest idea. Remove it and we're done. Later I'll move initialization to its own module.
+
+Now it's time to pass the SqlitePool down the stream. 
+
+One more thing to do is to initialize a random database for each test invocation.
+It can be done with a bit of connection URL magic.
+
+```rust
+let database_name = uuid::Uuid::now_v7();
+let database_path = format!("file:{}.db?mode=memory&cache=shared", database_name);
+let test_pool = SqlitePool::connect(&database_path);
+```
+
+And of course I must not forget to run migrations on the test database. Adding the migration macro to the service startup works fine for now.
+
+```rust
+migration!("./migrations")
+  .run(&db_pool)
+  .await?;
+```
