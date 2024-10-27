@@ -1,4 +1,5 @@
 use fake::{faker::name::en::Name, Fake};
+use printtables::projects::domain::validation::ValidationError;
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use server::start_test_server;
@@ -92,9 +93,48 @@ async fn viewing_missing_project_responds_404() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[tokio::test]
+async fn register_invalid_project() -> anyhow::Result<()> {
+    let test_server = start_test_server().await?;
+
+    let project_request = RegisterProjectRequest::invalid_name();
+    let create_project_uri = test_server.uri("/v1/projects");
+
+    let rest_client = reqwest::Client::new();
+    let resp = rest_client
+        .post(create_project_uri)
+        .header("Content-Type", "application/json")
+        .header("Accept", "application/json")
+        .json(&project_request)
+        .send()
+        .await?;
+
+    assert_eq!(
+        resp.status(),
+        StatusCode::BAD_REQUEST,
+        "the service did not reject invalid project payload"
+    );
+
+    let err: ValidationError = resp.json().await?;
+
+    assert!(
+        err.code().starts_with("project.name"),
+        "incorrect error code"
+    );
+    assert_eq!(err.attribute(), "name");
+
+    Ok(())
+}
+
 impl RegisterProjectRequest {
     fn random() -> Self {
         let name = Name().fake();
         Self { name }
+    }
+
+    fn invalid_name() -> Self {
+        Self {
+            name: "".to_string(),
+        }
     }
 }

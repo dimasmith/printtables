@@ -165,3 +165,37 @@ This may end up in changing repository trait a bit.
 But wait. On the other hand - when was the last time I created a test? 
 I now have an interface to test my first use case.
 Off to testing!
+
+## Payload validation
+
+Do not validate - parse. It is a guiding principle I want to employ in this project. And boy oh boy it looks so reasonable when remembering all validation-related disasters from my 20 years with Java. No, it's not a Java issue - it's just not that good usage of it. 
+
+So the idea is to replace simple types in domain objects with safe wrappers that allow only valid values.
+
+```rust
+struct Name {
+  pub fn parse(value: String) -> Result<Self, ValidationError> {
+    // do validation
+    // return self only when everyting is OK
+  }
+}
+```
+
+It's safe to pass this object down. There's guarantee that the value is intact. E.g., the name is not empty and not too long.
+
+Implementing the `TryFrom` trait informs other developers about your intention. And the `AsRef` trait allows representing inner value. It is important in infrastructure code, like database access.
+
+Implementing validation this way is a bit verbose - I assume there are crates allowing to reduce boilerplate. However, it is really convenient.
+
+Another component I need is some kind of validation error. I come out with the struct like that for now.
+
+```rust
+struct ValidationError {
+  message: String,
+  attribute: String,
+  code: String,
+}
+```
+
+Now it's a matter of implementing the `IntoResponse` trait for the error to present validation errors as responses with code 400.
+

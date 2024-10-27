@@ -8,7 +8,9 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::projects::app::service::ProjectError;
+use crate::projects::domain::name::Name;
 use crate::projects::domain::project::Project;
+use crate::projects::domain::validation::ValidationError;
 use crate::projects::{app::service::ProjectsService, domain::project::ProjectId};
 
 #[derive(Debug, Clone, Deserialize)]
@@ -25,10 +27,15 @@ pub async fn register_project(
     State(project_service): State<Arc<dyn ProjectsService>>,
     extract::Json(command): extract::Json<RegisterProjectCommand>,
 ) -> Result<ProjectCreatedResponse, impl IntoResponse> {
-    let name = command.name;
-    let id = project_service.register_project(&name).await;
+    let name = match Name::try_from(command.name) {
+        Ok(name) => name,
+        Err(err) => {
+            return Err(err.into_response());
+        }
+    };
+    let id = project_service.register_project(name).await;
     if let Err(e) = id {
-        return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{}", e)));
+        return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{}", e)).into_response());
     }
 
     let id = id.unwrap();
@@ -63,6 +70,12 @@ impl IntoResponse for ProjectCreatedResponse {
             Json(self),
         )
             .into_response()
+    }
+}
+
+impl IntoResponse for ValidationError {
+    fn into_response(self) -> axum::response::Response {
+        (StatusCode::BAD_REQUEST, Json(self)).into_response()
     }
 }
 

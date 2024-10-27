@@ -2,18 +2,20 @@ use async_trait::async_trait;
 use chrono::{Local, NaiveDateTime};
 use uuid::Uuid;
 
+use super::name::Name;
+
 pub type ProjectId = Uuid;
 
 /// Printable project.
 #[derive(Debug, Clone)]
 pub struct Project {
     id: ProjectId,
-    name: String,
+    name: Name,
     created_at: NaiveDateTime,
 }
 
 impl Project {
-    pub fn new(name: String) -> Self {
+    pub fn new(name: Name) -> Self {
         let id = Uuid::now_v7();
         let created_at = Local::now().naive_local();
         Self {
@@ -29,7 +31,7 @@ impl Project {
         self.id
     }
 
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> &Name {
         &self.name
     }
 
