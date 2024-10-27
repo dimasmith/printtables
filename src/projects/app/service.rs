@@ -55,7 +55,7 @@ impl<R: ProjectRepository> ProjectsService for DefaultProjectService<R> {
         let project = repo
             .find_by_id(id)
             .await
-            .map_err(|e| ProjectError::GeneralError(e))?;
+            .map_err(ProjectError::GeneralError)?;
         match project {
             Some(p) => Ok(p),
             None => Err(ProjectError::MissingProject),
