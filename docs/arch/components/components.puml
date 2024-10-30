@@ -1,0 +1,18 @@
+@startuml components
+footer: App version: 0.1.0
+!include <C4/C4_Component>
+
+AddComponentTag(domain, $legendText="Domain Module")
+AddComponentTag(infra, $legendText="Infrastructure Component", $shape=EightSidedShape())
+
+Container_Boundary(apiService, "API Service") {
+    Component(projects, "Projects", "Domain", "Registers new project and views project details.", $tags=domain)
+    Component(inventory, "Inventory", "Domain", "Registers, lists, and views details of printable parts.", $tags=domain)
+    Component(server, "Server", "Axum", "Serves the API and Web UI.", $tags=infra)
+
+    Rel(server, projects, "Retrieves projects")
+    Rel(server, inventory, "Retrieves parts and assemblies")
+}
+
+SHOW_LEGEND()
+@enduml
