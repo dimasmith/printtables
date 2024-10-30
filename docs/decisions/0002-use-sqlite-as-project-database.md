@@ -1,7 +1,8 @@
 # ADR-0002: Use sqlite database and sqlx library for db operations 
 
-Status: `Accepted``
-Date: `2024-10-29`
+| Code | Status | Date |
+|:--- |:--- |:--- |
+| `ADR-0002` | Accepted | 2024-10-29 |
 
 ## Context
 

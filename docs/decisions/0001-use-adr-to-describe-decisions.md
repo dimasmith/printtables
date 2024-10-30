@@ -1,7 +1,9 @@
 # ADR-0001: Adopt Architecture Decision Records (ADRs) for Decision Tracking
 
-Status: `Accepted`
-Date: `2024-10-19`
+| Code | Status | Date |
+|:--- |:--- |:--- |
+|`ADR-0001`| Accepted | 2024-10-19 |
+
 
 ## Context
 
