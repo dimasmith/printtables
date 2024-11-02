@@ -14,5 +14,7 @@ In the [components view](./components/components.md) we dive into the structure 
 
 The [quality attributes](quality-attributes/utility-tree.md) section lists the applicable quality attributes and evaluates their relevance. The utility tree in this section should be used to evaluate solutions and justify decisions.
 
+The [entity relationship diagram](./erd/erd.md) provides a visual representation of the data model. Check it to understand the data model and the relationships between entities.
+
 Looking through the past decisions is beneficial for establishing context.
 Check the [decision log](../decisions/index.md) for ADRs.
