@@ -9,3 +9,5 @@ So the notes here, we hope, will be helpful as a source of troubleshooting and e
 
 - [Getting started](getting-started.md)
 - [First use cases](first-use-cases.md)
+- [Registering parts](./registering-parts.md)
+
