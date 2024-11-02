@@ -2,7 +2,7 @@
 
 use std::sync::{Arc, LazyLock};
 
-use crate::infra::sqlite::part::SqlitePartRepository;
+use crate::infra::sqlx::part::SqlxPartRepository;
 use crate::inventory::app::service::DefaultInventoryService;
 use crate::projects::app::service::{DefaultProjectService, ProjectsService};
 use crate::projects::infra::sqlx::project_repository::SqlxProjectRepository;
@@ -26,7 +26,7 @@ pub async fn start_server(listener: TcpListener, db_pool: SqlitePool) -> anyhow:
     let project_service = DefaultProjectService::new(Arc::new(project_repo));
     let shared_project_service: Arc<dyn ProjectsService> = Arc::new(project_service);
 
-    let parts_repo = SqlitePartRepository::new(db_pool.clone());
+    let parts_repo = SqlxPartRepository::new(db_pool.clone());
     let inventory = DefaultInventoryService::new(Arc::new(parts_repo));
 
     let app = router(Arc::clone(&shared_project_service), Arc::new(inventory));
