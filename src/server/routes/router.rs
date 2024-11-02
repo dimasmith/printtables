@@ -4,8 +4,8 @@ use std::sync::Arc;
 
 use crate::inventory::app::service::InventoryService;
 use crate::projects::app::service::ProjectsService;
-use crate::projects::infra::axum::{register_project, view_project};
 use crate::server::routes::health::health;
+use crate::server::routes::projects::{register_project, view_project};
 use axum::routing::{get, post};
 use axum::Router;
 use tower::ServiceBuilder;

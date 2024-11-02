@@ -6,7 +6,7 @@ use tracing_subscriber::util::SubscriberInitExt;
 
 /// Initializes tracing subscriber.
 /// This function must be called only once in application lifecycle.
-pub(super) fn initialize_tracing() {
+pub fn initialize_tracing() {
     let subscriber = tracing_subscriber::registry()
         .with(LevelFilter::from_level(Level::TRACE))
         .with(fmt::Layer::default());

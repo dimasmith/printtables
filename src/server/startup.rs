@@ -3,14 +3,14 @@
 use std::sync::{Arc, LazyLock};
 
 use crate::infra::sqlx::part::SqlxPartRepository;
+use crate::infra::sqlx::project::SqlxProjectRepository;
 use crate::inventory::app::service::DefaultInventoryService;
 use crate::projects::app::service::{DefaultProjectService, ProjectsService};
-use crate::projects::infra::sqlx::project_repository::SqlxProjectRepository;
 use crate::server::routes::router::router;
 use sqlx::{migrate, SqlitePool};
 use tokio::net::TcpListener;
 
-use super::tracing::initialize_tracing;
+use crate::infra::tracing::initialize_tracing;
 
 static TRACING: LazyLock<()> = LazyLock::new(|| {
     initialize_tracing();
