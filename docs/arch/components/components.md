@@ -9,30 +9,30 @@
 ![C4 components diagram](./components.png)
 *Components diagram*
 
-The system consists of domain and infrastructure modules.
+The system consists of domain, infrastructure, and application modules.
 
 ### Domain modules
 
-Domain modules serves different bounded contexts. The *projects* module handles printing projects. The not yet implemented *inventory* module keeps assemblies and parts user can add to project.
+Domain modules serves different bounded contexts. The *projects* module handles printing projects. The *inventory* module keeps assemblies and parts user can add to project.
 
 Domain modules will need to collaborate and exchange information in the future. A decision on cross-module communication is not yet taken.
-
-Domain modules are not pure business logic. Currently they contain a part of the infrastructure implementing driven and driver ports. Check the projects module for example.
 
 ```
 projects <module root>
   +-- app     - application services coordinating domain operations
   +-- domain  - domain entities and values
-  +-- infra   - implementation of domain concerns, like REST endpoints and persistence
-    +-- axum  - REST handlers 
-    +-- sqlx  - domain repository implemented using sqlx library
 ```
-
-The infrastructure part may be moved outside of the domain level in future.
-
 ### Infrastructure modules
 
-The *server* module is what binds the application together. It implements the API service. The server module initializes web server, database connection, logging, and other necessary infrastructure. 
+Infrastructure implements requirements of the domain. The most prominent example is the `sqlx` module. It implements repository traits specified by the domain, enabling communication with the database.
+
+Another type of infrastructure modules are those implementing cross-cutting concerns, like observability.
+
+### Application modules
+
+The *server* module is what binds the application together. It implements the API service. 
+
+Application modules are, in essence, different applications, built on top of the domain and using shared infrastructure. Later versions of printtables will introduce a TUI application to run the service in terminal.
 
 ### Cross-cutting concerns
 
