@@ -1,0 +1,29 @@
+@startuml erd
+!include ../meta.puml
+title: Entity relationship diagram
+
+entity Project {
+    + id [PK]
+    --
+    * name
+    * created_at
+}
+
+entity Part {
+    + id [PK]
+    --
+    * name
+}
+
+entity Order {
+    + project_id [FK]
+    + part_id [FK]
+    --
+    * quantity
+}
+
+Project ||--|{ Order
+Part ||--o{ Order
+
+
+@enduml
