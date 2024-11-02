@@ -7,18 +7,18 @@ use crate::inventory::domain::part::{Part, PartId};
 use crate::inventory::domain::part_repository::PartRepository;
 
 #[derive(Debug)]
-pub struct SqlitePartRepository {
+pub struct SqlxPartRepository {
     pool: SqlitePool,
 }
 
-impl SqlitePartRepository {
+impl SqlxPartRepository {
     pub fn new(pool: SqlitePool) -> Self {
         Self { pool }
     }
 }
 
 #[async_trait]
-impl PartRepository for SqlitePartRepository {
+impl PartRepository for SqlxPartRepository {
     async fn insert(&self, part: Part) -> anyhow::Result<()> {
         let record = PartRecord::from(part);
         sqlx::query!(
