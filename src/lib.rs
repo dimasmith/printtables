@@ -7,6 +7,7 @@
 //!
 //! Projects is concerned with organising those parts into printable plans and keeping track of
 //! plans completion.
+pub mod infra;
 pub mod inventory;
 pub mod projects;
 pub mod server;
