@@ -1,5 +1,5 @@
 @startuml components
-footer: App version: 0.1.0
+!include ../meta.puml
 !include <C4/C4_Component>
 
 AddComponentTag(domain, $legendText="Domain Module")

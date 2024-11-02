@@ -1,5 +1,5 @@
-@startuml
-footer: App version: 0.1.0
+@startuml containers
+!include ../meta.puml
 !include <C4/C4_Container>
 
 Person(maker, "Maker", "A person who builds projects using 3D-printing. Makers deploy, maintain, and use the application.")
