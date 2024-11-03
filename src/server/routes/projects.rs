@@ -10,8 +10,8 @@ use uuid::Uuid;
 use crate::projects::app::service::ProjectError;
 use crate::projects::domain::name::Name;
 use crate::projects::domain::project::Project;
-use crate::projects::domain::validation::ValidationError;
 use crate::projects::{app::service::ProjectsService, domain::project::ProjectId};
+use crate::server::rest::ErrorResponse;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct RegisterProjectCommand {
@@ -26,24 +26,17 @@ pub struct ProjectCreatedResponse {
 pub async fn register_project(
     State(project_service): State<Arc<dyn ProjectsService>>,
     extract::Json(command): extract::Json<RegisterProjectCommand>,
-) -> Result<ProjectCreatedResponse, impl IntoResponse> {
-    let name = match Name::try_from(command.name) {
-        Ok(name) => name,
-        Err(err) => {
-            return Err(err.into_response());
-        }
-    };
-    let id = project_service.register_project(name).await;
-    if let Err(e) = id {
-        return Err((StatusCode::INTERNAL_SERVER_ERROR, format!("{}", e)).into_response());
+) -> Result<ProjectCreatedResponse, ErrorResponse> {
+    let name = parse_create_request(command)?;
+    let result = project_service.register_project(name).await;
+    match result {
+        Ok(id) => Ok(ProjectCreatedResponse { id }),
+        Err(_) => Err(ErrorResponse::InternalError),
     }
-
-    let id = id.unwrap();
-    Ok(ProjectCreatedResponse { id })
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub struct ProjectResponse {
+pub struct ProjectView {
     id: ProjectId,
     name: String,
 }
@@ -51,14 +44,12 @@ pub struct ProjectResponse {
 pub async fn view_project(
     State(project_service): State<Arc<dyn ProjectsService>>,
     Path(project_id): Path<Uuid>,
-) -> Result<impl IntoResponse, StatusCode> {
+) -> Result<impl IntoResponse, ErrorResponse> {
     let project = project_service.view_project(project_id).await;
     match project {
-        Ok(p) => Ok(Json(ProjectResponse::from(p))),
-        Err(e) => match e {
-            ProjectError::MissingProject => Err(StatusCode::NOT_FOUND),
-            _ => Err(StatusCode::INTERNAL_SERVER_ERROR),
-        },
+        Ok(p) => Ok(Json(ProjectView::from(p))),
+        Err(ProjectError::MissingProject) => Err(ErrorResponse::NotFound),
+        Err(_) => Err(ErrorResponse::InternalError),
     }
 }
 
@@ -73,16 +64,17 @@ impl IntoResponse for ProjectCreatedResponse {
     }
 }
 
-impl IntoResponse for ValidationError {
-    fn into_response(self) -> axum::response::Response {
-        (StatusCode::BAD_REQUEST, Json(self)).into_response()
-    }
-}
-
-impl From<Project> for ProjectResponse {
+impl From<Project> for ProjectView {
     fn from(value: Project) -> Self {
         let id = value.id();
         let name = value.name().to_string();
-        ProjectResponse { id, name }
+        ProjectView { id, name }
+    }
+}
+
+fn parse_create_request(payload: RegisterProjectCommand) -> Result<Name, ErrorResponse> {
+    match Name::try_from(payload.name) {
+        Ok(name) => Ok(name),
+        Err(err) => Err(ErrorResponse::ValidationFailed(vec![err])),
     }
 }

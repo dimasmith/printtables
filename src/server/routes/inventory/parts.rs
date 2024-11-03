@@ -10,39 +10,36 @@ use uuid::Uuid;
 use crate::inventory::app::service::{InventoryError, InventoryService};
 use crate::inventory::domain::name::Name;
 use crate::inventory::domain::part::{Part, PartId};
+use crate::server::rest::ErrorResponse;
 
 pub async fn register_part(
     State(inventory): State<Arc<dyn InventoryService>>,
     Json(command): Json<RegisterPartCommand>,
 ) -> Result<impl IntoResponse, impl IntoResponse> {
-    let name = match Name::try_from(command.name) {
-        Ok(name) => name,
-        Err(validation_error) => {
-            return Err(validation_error.into_response());
-        }
-    };
+    let name = parse_register_part_command(command)?;
     let result = inventory.register_part(name).await;
     match result {
-        Ok(part_id) => {
-            let response = RegisterPartResponse { id: part_id };
-            Ok(response)
-        }
-        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR.into_response()),
+        Ok(part_id) => Ok(RegisterPartResponse { id: part_id }),
+        Err(_) => Err(ErrorResponse::InternalError),
     }
 }
 
 pub async fn view_part(
     State(inventory): State<Arc<dyn InventoryService>>,
     Path(part_id): Path<Uuid>,
-) -> Result<impl IntoResponse, impl IntoResponse> {
+) -> Result<impl IntoResponse, ErrorResponse> {
     let result = inventory.view_part(part_id).await;
     match result {
-        Ok(part) => {
-            let part_view = PartView::from(part);
-            Ok(part_view)
-        }
-        Err(InventoryError::MissingPart) => Err(StatusCode::NOT_FOUND),
-        Err(InventoryError::GeneralError(_)) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+        Ok(part) => Ok(PartView::from(part)),
+        Err(InventoryError::MissingPart) => Err(ErrorResponse::NotFound),
+        Err(InventoryError::GeneralError(_)) => Err(ErrorResponse::InternalError),
+    }
+}
+
+fn parse_register_part_command(payload: RegisterPartCommand) -> Result<Name, ErrorResponse> {
+    match Name::try_from(payload.name) {
+        Ok(name) => Ok(name),
+        Err(validation) => Err(ErrorResponse::ValidationFailed(vec![validation])),
     }
 }
 

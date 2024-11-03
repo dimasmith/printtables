@@ -1,5 +1,5 @@
 use fake::{faker::name::en::Name, Fake};
-use printtables::projects::domain::validation::ValidationError;
+use printtables::server::rest::ValidationMessage;
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use server::start_test_server;
@@ -115,13 +115,17 @@ async fn register_invalid_project() -> anyhow::Result<()> {
         "the service did not reject invalid project payload"
     );
 
-    let err: ValidationError = resp.json().await?;
+    let err_message: ValidationMessage = resp.json().await?;
+    let first_err = err_message
+        .errors
+        .get(0)
+        .expect("validation message must contain entries");
 
     assert!(
-        err.code().starts_with("project.name"),
+        first_err.code().starts_with("project.name"),
         "incorrect error code"
     );
-    assert_eq!(err.attribute(), "name");
+    assert_eq!(first_err.attribute(), "name");
 
     Ok(())
 }

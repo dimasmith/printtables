@@ -1,5 +1,5 @@
 use fake::{faker::name::en::Name, Fake};
-use printtables::projects::domain::validation::ValidationError;
+use printtables::server::rest::ValidationMessage;
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use server::start_test_server;
@@ -119,10 +119,17 @@ async fn register_invalid_part() -> anyhow::Result<()> {
         "the service did not reject invalid part payload"
     );
 
-    let err: ValidationError = resp.json().await?;
+    let err_message: ValidationMessage = resp.json().await?;
+    let first_error = err_message
+        .errors
+        .get(0)
+        .expect("error must contain at least one entry");
 
-    assert!(err.code().starts_with("part.name"), "incorrect error code");
-    assert_eq!(err.attribute(), "name");
+    assert!(
+        first_error.code().starts_with("part.name"),
+        "incorrect error code"
+    );
+    assert_eq!(first_error.attribute(), "name");
 
     Ok(())
 }
