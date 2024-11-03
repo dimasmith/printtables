@@ -26,3 +26,26 @@ The internal error does not carry any additional information. While it may be su
 
 The validation error is more interesting. It accepts a list of validation messages and includes them in a payload. I'd like to build some convenience tools to validate multiple fields, but there are only names to check. Not much. Still, I decided to extract payload parsing to a separate function. Now it allows me to use the `?`operator: `parse_project(command)?`. Later it will be useful to process more fields.
 
+## Collecting validator
+
+I need something to collect validation errors from all payload fields. Despite my 2 entities have only one validated value - name - it's better to be ready. How to collect errors? I can create a list of `ValidationError` in the parse method and add any error that appears during field parsing. This approach is a bit verbose. So I decided to create a `CollectingValidator` to make things marginally easier.
+
+The core of the validator is a method accepting any implementation of `TryFrom` using `ValidationError` as the error type. Method parsed the supplied payload and returns parsing result - literally what you'd do with a direct call to `try_from` on a value object. The added benefit is that once error happens, validator adds it to the internal errors list.
+
+```rust
+fn parse<V, P>(&mut self, payload: P) -> Result<V, ValidationError> where V: TryFrom<P, Error = ValidationError> {
+  let result = V::try_from(payload);
+  match result {
+    Ok(value) => Ok(value),
+    Err(invalid_payload) => {
+      self.errors.push(invalid_payload.clone());
+      Err(invalid_payload)
+    }
+  }
+}
+```
+
+I'm still looking for a more elegant solution, but this should do for now.
+
+On a side note: I love Rust's type system. The `V::try_from` line makes my old Java-fied brain happy.
+
