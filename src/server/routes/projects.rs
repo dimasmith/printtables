@@ -12,6 +12,7 @@ use crate::projects::domain::name::Name;
 use crate::projects::domain::project::Project;
 use crate::projects::{app::service::ProjectsService, domain::project::ProjectId};
 use crate::server::rest::ErrorResponse;
+use crate::shared::validation::validator::CollectingValidator;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct RegisterProjectCommand {
@@ -73,8 +74,12 @@ impl From<Project> for ProjectView {
 }
 
 fn parse_create_request(payload: RegisterProjectCommand) -> Result<Name, ErrorResponse> {
-    match Name::try_from(payload.name) {
-        Ok(name) => Ok(name),
-        Err(err) => Err(ErrorResponse::ValidationFailed(vec![err])),
+    let mut validator = CollectingValidator::default();
+    let name = validator.parse_string::<Name>(payload.name);
+
+    if validator.has_errors() {
+        Err(ErrorResponse::ValidationFailed(validator.into_errors()))
+    } else {
+        Ok(name.unwrap())
     }
 }

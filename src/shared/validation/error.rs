@@ -13,7 +13,7 @@ use thiserror::Error;
 /// The UI uses error codes to internationalize error messages.
 /// The `message` is human-readable error message. It is displayed when there is no
 /// internationalized variant available.
-#[derive(Debug, Error, Serialize, Deserialize)]
+#[derive(Debug, Clone, Error, Serialize, Deserialize)]
 pub struct ValidationError {
     attribute: String,
     code: String,
