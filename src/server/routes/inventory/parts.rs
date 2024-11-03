@@ -11,6 +11,7 @@ use crate::inventory::app::service::{InventoryError, InventoryService};
 use crate::inventory::domain::name::Name;
 use crate::inventory::domain::part::{Part, PartId};
 use crate::server::rest::ErrorResponse;
+use crate::shared::validation::validator::CollectingValidator;
 
 pub async fn register_part(
     State(inventory): State<Arc<dyn InventoryService>>,
@@ -37,9 +38,13 @@ pub async fn view_part(
 }
 
 fn parse_register_part_command(payload: RegisterPartCommand) -> Result<Name, ErrorResponse> {
-    match Name::try_from(payload.name) {
-        Ok(name) => Ok(name),
-        Err(validation) => Err(ErrorResponse::ValidationFailed(vec![validation])),
+    let mut validator = CollectingValidator::default();
+    let name = validator.parse_string::<Name>(payload.name);
+
+    if validator.has_errors() {
+        Err(ErrorResponse::ValidationFailed(validator.into_errors()))
+    } else {
+        Ok(name.unwrap())
     }
 }
 
