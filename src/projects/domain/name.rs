@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use super::validation::ValidationError;
+use crate::shared::validation::error::ValidationError;
 
 /// Name of the project.
 /// Name cannot be empty and it's max lenght is 200 bytes.
