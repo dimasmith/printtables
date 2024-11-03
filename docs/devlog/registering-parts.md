@@ -14,3 +14,15 @@ Error handling in REST endpoints is a bit convoluted with excessive calls to `in
 
 Validation deserves a few touches here and there. I copied the `Name` value object from the projects module to inventory. Probably not the best idea. I don't yet have a situation when multiple validation errors are possible, but it's time to prepare for that. The response must have a list of errors instead of a single error in the payload root.
 
+## Common REST errors
+
+I decide to start with common errors and their REST representation. The design is straightforward: simple enum with most common errors. I added the following entries:
+
+- Not found error.
+- Validation error.
+- Internal error.
+
+The internal error does not carry any additional information. While it may be surprising at first, I decided not to provide any information on error to the user. If something goes wrong - check the log. This, in turn, forces to think about a reliable logging policy. I'll write it into a todo list.
+
+The validation error is more interesting. It accepts a list of validation messages and includes them in a payload. I'd like to build some convenience tools to validate multiple fields, but there are only names to check. Not much. Still, I decided to extract payload parsing to a separate function. Now it allows me to use the `?`operator: `parse_project(command)?`. Later it will be useful to process more fields.
+
