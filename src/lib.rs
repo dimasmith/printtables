@@ -11,3 +11,4 @@ pub mod infra;
 pub mod inventory;
 pub mod projects;
 pub mod server;
+pub mod shared;

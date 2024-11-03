@@ -5,7 +5,7 @@ use axum::response::{IntoResponse, Response};
 use axum::Json;
 use serde::{Deserialize, Serialize};
 
-use crate::projects::domain::validation::ValidationError;
+use crate::shared::validation::error::ValidationError;
 
 #[derive(Debug)]
 pub enum ErrorResponse {
