@@ -5,17 +5,21 @@
 AddComponentTag(domain, $legendText="Domain Module")
 AddComponentTag(infra, $legendText="Infrastructure Component", $shape=EightSidedShape())
 AddComponentTag(app, $legendText="Application")
+AddComponentTag(shared, $legendText="Shared Module")
 
 Container_Boundary(apiService, "API Service") {
     Component(projects, "Projects", "Domain", "Registers new project and views project details.", $tags=domain)
     Component(inventory, "Inventory", "Domain", "Registers, lists, and views details of printable parts.", $tags=domain)
     Component(server, "Server", "Axum", "Serves the API and Web UI.", $tags=app)
     Component(infra_sqlx, "Database Access", "Sqlx", "Stores application data in the database", $tags=infra)
+    Component(validation, "Validation", "", "Reports validation errors to users", $tags=shared)
 
     Rel(server, projects, "Retrieves projects")
     Rel(server, inventory, "Retrieves parts and assemblies")
     Rel(projects, infra_sqlx, "Stores data using")
     Rel(inventory, infra_sqlx, "Stores data using")
+    Rel(inventory, validation, "Validates data using")
+    Rel(projects, validation, "Validates data using")
 }
 
 SHOW_LEGEND()
