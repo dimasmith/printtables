@@ -34,11 +34,19 @@ The *server* module is what binds the application together. It implements the AP
 
 Application modules are, in essence, different applications, built on top of the domain and using shared infrastructure. Later versions of printtables will introduce a TUI application to run the service in terminal.
 
+### Shared modules
+
+Shared modules keeps utilities and cross-cutting concerns that are:
+
+- Not domain-specific.
+- Not connected to infrastructure.
+
+One example of such module is validation.
+
 ### Cross-cutting concerns
 
 The approach to cross-cutting concerns is yet to be established. The closest analysis candidates are:
 
-- Validation
 - Transaction management
 
 The validation helpers is defined in the projects module domain layer. However, some of the definitions must be shared across all domain modules.
