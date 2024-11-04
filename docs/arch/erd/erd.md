@@ -12,4 +12,4 @@ The very first version of printtables allows to create orders for multiple parts
 |---------|-------------|
 | Project | A group of parts that are ordered together. |
 | Part | A single item that is ordered. |
-| Order | A table to define how many items of each type are necessary to complete a project |
+| BOM | A bill of material for the project. Shows how many of each parts are necessary for project completion |

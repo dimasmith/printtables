@@ -15,15 +15,15 @@ entity Part {
     * name
 }
 
-entity Order {
+entity BOM {
     + project_id [FK]
     + part_id [FK]
     --
     * quantity
 }
 
-Project ||--|{ Order
-Part ||--o{ Order
+Project ||--|{ BOM
+Part ||--o{ BOM
 
 
 @enduml
