@@ -1,8 +1,10 @@
 //! View model for the project. Useful for displaying project details to users.
 
+use serde::Serialize;
+
 use crate::projects::domain::project::ProjectId;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ProjectView {
     id: ProjectId,
     name: String,
