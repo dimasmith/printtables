@@ -2,21 +2,38 @@
 
 use serde::Serialize;
 
-use crate::projects::domain::project::ProjectId;
+use crate::{inventory::domain::part::PartId, projects::domain::project::ProjectId};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ProjectView {
     id: ProjectId,
     name: String,
-    bom_size: usize,
+    bom: Vec<ProjectPart>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ProjectPart {
+    part_id: PartId,
+    name: String,
+    quantity: u32,
 }
 
 impl ProjectView {
-    pub fn new(id: ProjectId, name: String) -> Self {
+    pub fn new(id: ProjectId, name: String, parts: Vec<ProjectPart>) -> Self {
         Self {
             id,
             name,
-            bom_size: 0,
+            bom: parts,
+        }
+    }
+}
+
+impl ProjectPart {
+    pub fn new(part_id: PartId, name: String, quantity: u32) -> Self {
+        Self {
+            part_id,
+            name,
+            quantity,
         }
     }
 }
@@ -31,6 +48,10 @@ impl ProjectView {
     }
 
     pub fn bom_size(&self) -> usize {
-        self.bom_size
+        self.bom.len()
+    }
+
+    pub fn parts(&self) -> &[ProjectPart] {
+        self.bom.as_slice()
     }
 }
