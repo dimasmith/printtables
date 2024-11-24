@@ -1,5 +1,4 @@
 use super::name::Name;
-use async_trait::async_trait;
 use chrono::{Local, NaiveDateTime};
 use uuid::Uuid;
 
