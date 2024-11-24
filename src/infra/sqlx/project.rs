@@ -1,5 +1,6 @@
 use crate::projects::domain::name::Name;
-use crate::projects::domain::project::{Project, ProjectId, ProjectRepository};
+use crate::projects::domain::project::{Project, ProjectId};
+use crate::projects::domain::repository::ProjectRepository;
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
 use sqlx::Error;
