@@ -6,7 +6,8 @@ use thiserror::Error;
 use tracing::info;
 
 use crate::projects::domain::name::Name;
-use crate::projects::domain::project::{Project, ProjectId, ProjectRepository};
+use crate::projects::domain::project::{Project, ProjectId};
+use crate::projects::domain::repository::ProjectRepository;
 
 /// Typical errors happening during project processing.
 #[derive(Debug, Error)]
