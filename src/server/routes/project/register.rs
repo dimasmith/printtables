@@ -1,13 +1,11 @@
 use std::sync::Arc;
 
-use axum::extract::{self, Path, State};
+use axum::extract::{self, State};
 use axum::http::{header, StatusCode};
 use axum::response::IntoResponse;
 use axum::Json;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
-use crate::projects::app::service::ProjectError;
 use crate::projects::domain::name::Name;
 use crate::projects::{app::service::ProjectsService, domain::project::ProjectId};
 use crate::server::rest::ErrorResponse;
@@ -31,18 +29,6 @@ pub async fn register_project(
     let result = project_service.register_project(name).await;
     match result {
         Ok(id) => Ok(ProjectCreatedResponse { id }),
-        Err(_) => Err(ErrorResponse::InternalError),
-    }
-}
-
-pub async fn view_project(
-    State(project_service): State<Arc<dyn ProjectsService>>,
-    Path(project_id): Path<Uuid>,
-) -> Result<impl IntoResponse, ErrorResponse> {
-    let project = project_service.view_project(project_id).await;
-    match project {
-        Ok(p) => Ok(Json(p)),
-        Err(ProjectError::MissingProject) => Err(ErrorResponse::NotFound),
         Err(_) => Err(ErrorResponse::InternalError),
     }
 }
