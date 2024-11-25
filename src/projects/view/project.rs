@@ -1,17 +1,17 @@
 //! View model for the project. Useful for displaying project details to users.
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::{inventory::domain::part::PartId, projects::domain::project::ProjectId};
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProjectView {
     id: ProjectId,
     name: String,
     bom: Vec<ProjectPart>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProjectPart {
     part_id: PartId,
     name: String,
@@ -53,5 +53,19 @@ impl ProjectView {
 
     pub fn parts(&self) -> &[ProjectPart] {
         self.bom.as_slice()
+    }
+}
+
+impl ProjectPart {
+    pub fn id(&self) -> PartId {
+        self.part_id
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn quantity(&self) -> u32 {
+        self.quantity
     }
 }

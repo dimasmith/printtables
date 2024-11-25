@@ -5,9 +5,10 @@ use std::sync::Arc;
 use crate::inventory::app::service::InventoryService;
 use crate::projects::app::service::ProjectsService;
 use crate::server::routes::health::health;
+use crate::server::routes::project::parts::define_project_bom;
 use crate::server::routes::project::register::register_project;
 use crate::server::routes::project::view::view_project;
-use axum::routing::{get, post};
+use axum::routing::{get, post, put};
 use axum::Router;
 use tower::ServiceBuilder;
 use tower_http::trace::TraceLayer;
@@ -23,6 +24,7 @@ pub fn router(
         .route("/health", get(health))
         .route("/v1/projects", post(register_project))
         .route("/v1/projects/:project_id", get(view_project))
+        .route("/v1/projects/:project_id/parts", put(define_project_bom))
         .with_state(Arc::clone(&project_service))
         .route("/v1/inventory/parts", post(register_part))
         .route("/v1/inventory/parts/:part_id", get(view_part))
