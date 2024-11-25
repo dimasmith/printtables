@@ -6,7 +6,7 @@ use thiserror::Error;
 use tracing::{error, info};
 
 use crate::projects::domain::name::Name;
-use crate::projects::domain::project::{Project, ProjectId};
+use crate::projects::domain::project::{Project, ProjectId, ProjectPart};
 use crate::projects::domain::repository::ProjectRepository;
 use crate::projects::view::project::ProjectView;
 use crate::projects::view::repository::ProjectViewRepository;
@@ -29,6 +29,12 @@ pub trait ProjectsService: Send + Sync {
 
     /// View the project with identifier id.
     async fn view_project(&self, id: ProjectId) -> Result<ProjectView, ProjectError>;
+
+    async fn set_project_bom(
+        &self,
+        project: ProjectId,
+        parts: Vec<ProjectPart>,
+    ) -> Result<(), ProjectError>;
 }
 
 pub struct DefaultProjectService<R: ProjectRepository, V: ProjectViewRepository> {
@@ -71,5 +77,28 @@ impl<R: ProjectRepository, V: ProjectViewRepository> ProjectsService
             Some(p) => Ok(p),
             None => Err(ProjectError::MissingProject),
         }
+    }
+
+    async fn set_project_bom(
+        &self,
+        project_id: ProjectId,
+        parts: Vec<ProjectPart>,
+    ) -> Result<(), ProjectError> {
+        let project = self
+            .projects_repo
+            .find_by_id(project_id)
+            .await
+            .map_err(ProjectError::GeneralError)?;
+        let mut project = match project {
+            Some(p) => p,
+            None => return Err(ProjectError::MissingProject),
+        };
+
+        project.define_parts(parts);
+
+        self.projects_repo
+            .update(project)
+            .await
+            .map_err(ProjectError::GeneralError)
     }
 }
