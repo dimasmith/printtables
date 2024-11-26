@@ -1,4 +1,4 @@
-use crate::rest::project::{create_project, view_project_by_uri, CreateProjectPayload};
+use crate::server::project::{create_project, view_project_by_uri, CreateProjectPayload};
 use crate::server::{start_test_server, TestServer};
 use fake::{faker::name::en::Name, Fake};
 use printtables::projects::view::project::ProjectView;

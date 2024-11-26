@@ -3,6 +3,8 @@ use sqlx::SqlitePool;
 use std::future::IntoFuture;
 use tokio::net::TcpListener;
 
+pub mod project;
+
 // Common code to handle printtables server
 pub struct TestServer {
     pub port: u16,
