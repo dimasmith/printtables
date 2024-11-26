@@ -5,8 +5,11 @@ use reqwest::StatusCode;
 async fn health_endpoint_responds_with_200() -> anyhow::Result<()> {
     let test_server = start_test_server().await?;
 
-    let client = reqwest::Client::new();
-    let response = client.get(&test_server.uri("/health")).send().await?;
+    let response = test_server
+        .api_client
+        .get(test_server.uri("/health"))
+        .send()
+        .await?;
 
     assert_eq!(
         response.status(),
