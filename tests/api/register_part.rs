@@ -1,60 +1,31 @@
-use crate::server::start_test_server;
-use fake::{faker::name::en::Name, Fake};
+use crate::server::{
+    inventory::{RegisterPartPayload, ViewPartPayload},
+    start_test_server,
+};
 use printtables::server::rest::ValidationMessage;
-use reqwest::{Client, StatusCode};
-use serde::{Deserialize, Serialize};
+use reqwest::StatusCode;
 use uuid::Uuid;
-
-#[derive(Debug, Deserialize, PartialEq)]
-struct PartView {
-    id: String,
-    name: String,
-}
-
-#[derive(Debug, Serialize)]
-struct RegisterPartRequest {
-    name: String,
-}
 
 #[tokio::test]
 async fn register_and_view_part() -> anyhow::Result<()> {
     let test_server = start_test_server().await?;
 
-    let project_request = RegisterPartRequest::random();
-    let create_part_uri = test_server.uri("/v1/inventory/parts");
-
-    let rest_client = reqwest::Client::new();
-    let create_proect_response = rest_client
-        .post(create_part_uri)
-        .header("Content-Type", "application/json")
-        .header("Accept", "application/json")
-        .json(&project_request)
-        .send()
-        .await?;
+    let create_part_payload = RegisterPartPayload::default();
+    let create_part_response = test_server.register_part(&create_part_payload).await?;
 
     assert_eq!(
-        create_proect_response.status(),
+        create_part_response.status(),
         StatusCode::CREATED,
         "the service did not respond with created status"
     );
 
-    let project_location = create_proect_response
+    let part_uri = create_part_response
         .headers()
         .get("location")
         .ok_or(anyhow::Error::msg("no part ID in location header"))?
         .to_str()?;
 
-    let part_location = test_server.uri(project_location);
-    assert!(
-        part_location.contains("/v1/inventory/parts"),
-        "incorrect part location"
-    );
-
-    let view_part_response = rest_client
-        .get(part_location)
-        .header("Accept", "application/json")
-        .send()
-        .await?;
+    let view_part_response = test_server.view_part_by_uri(part_uri).await?;
 
     assert_eq!(
         view_part_response.status(),
@@ -62,9 +33,10 @@ async fn register_and_view_part() -> anyhow::Result<()> {
         "the newly created part must be found"
     );
 
-    let project_view = view_part_response.json::<PartView>().await?;
+    let project_view = view_part_response.json::<ViewPartPayload>().await?;
     assert_eq!(
-        &project_view.name, &project_request.name,
+        &project_view.name,
+        &create_part_payload.name(),
         "part name is not the same as created part name"
     );
 
@@ -77,14 +49,8 @@ async fn viewing_missing_part_responds_404() -> anyhow::Result<()> {
 
     let fake_id = Uuid::now_v7();
     let part_uri = format!("/v1/inventory/parts/{}", fake_id);
-    let project_uri = test_server.uri(&part_uri);
 
-    let rest_client = Client::new();
-    let response = rest_client
-        .get(project_uri)
-        .header("Accept", "application/json")
-        .send()
-        .await?;
+    let response = test_server.view_part_by_uri(&part_uri).await?;
 
     assert_eq!(
         response.status(),
@@ -99,28 +65,19 @@ async fn viewing_missing_part_responds_404() -> anyhow::Result<()> {
 async fn register_invalid_part() -> anyhow::Result<()> {
     let test_server = start_test_server().await?;
 
-    let project_request = RegisterPartRequest::invalid_name();
-    let create_project_uri = test_server.uri("/v1/inventory/parts");
-
-    let rest_client = reqwest::Client::new();
-    let resp = rest_client
-        .post(create_project_uri)
-        .header("Content-Type", "application/json")
-        .header("Accept", "application/json")
-        .json(&project_request)
-        .send()
-        .await?;
+    let register_part_payload = RegisterPartPayload::new("");
+    let response = test_server.register_part(&register_part_payload).await?;
 
     assert_eq!(
-        resp.status(),
+        response.status(),
         StatusCode::BAD_REQUEST,
         "the service did not reject invalid part payload"
     );
 
-    let err_message: ValidationMessage = resp.json().await?;
+    let err_message: ValidationMessage = response.json().await?;
     let first_error = err_message
         .errors
-        .get(0)
+        .first()
         .expect("error must contain at least one entry");
 
     assert!(
@@ -130,16 +87,4 @@ async fn register_invalid_part() -> anyhow::Result<()> {
     assert_eq!(first_error.attribute(), "name");
 
     Ok(())
-}
-impl RegisterPartRequest {
-    fn random() -> Self {
-        let name = Name().fake();
-        Self { name }
-    }
-
-    fn invalid_name() -> Self {
-        Self {
-            name: "".to_string(),
-        }
-    }
 }
