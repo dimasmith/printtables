@@ -1,9 +1,11 @@
 use fake::{faker::name::en::Name, Fake};
 use printtables::projects::view::project::ProjectView;
 use reqwest::StatusCode;
+use rest::project::{create_project, view_project_by_uri, CreateProjectPayload};
 use serde::{Deserialize, Serialize};
 use server::{start_test_server, TestServer};
 
+mod rest;
 mod server;
 
 #[derive(Debug, Serialize)]
@@ -26,19 +28,14 @@ struct PartView {
 async fn register_project_and_set_parts() -> anyhow::Result<()> {
     let test_server = start_test_server().await?;
     let rest_client = reqwest::Client::new();
-    let project_resource = create_project(&test_server).await?;
+
+    let project_uri = given_new_project(&test_server, &rest_client).await?;
+    ensure_project_have_no_parts(&test_server, &rest_client, &project_uri).await?;
     let test_part = RegisterPartRequest::random();
     let part_id = create_part(&test_server, &test_part).await?;
 
-    let project_view = view_project(&test_server, &rest_client, &project_resource).await?;
-    assert_eq!(
-        project_view.parts().len(),
-        0,
-        "the project must have no parts after creation, but it wasn't empty"
-    );
-
     let quantity: u32 = (1..100).fake();
-    let update_parts_url = test_server.uri(&format!("{}/parts", project_resource));
+    let update_parts_url = test_server.uri(&format!("{}/parts", project_uri));
     let update_parts_response = rest_client
         .put(update_parts_url)
         .header("Content-Type", "application/json")
@@ -58,7 +55,7 @@ async fn register_project_and_set_parts() -> anyhow::Result<()> {
 
     assert_eq!(update_parts_response.status(), reqwest::StatusCode::OK);
 
-    let project_view = view_project(&test_server, &rest_client, &project_resource).await?;
+    let project_view = view_project(&test_server, &rest_client, &project_uri).await?;
     assert_eq!(
         project_view.parts().len(),
         1,
@@ -69,6 +66,26 @@ async fn register_project_and_set_parts() -> anyhow::Result<()> {
     assert_eq!(part.quantity(), quantity);
     assert_eq!(part.name(), &test_part.name);
 
+    Ok(())
+}
+
+async fn ensure_project_have_no_parts(
+    test_server: &TestServer,
+    rest_client: &reqwest::Client,
+    project_uri: &str,
+) -> anyhow::Result<()> {
+    let response = view_project_by_uri(test_server, rest_client, project_uri).await?;
+    assert_eq!(
+        response.status(),
+        StatusCode::OK,
+        "failed to retrieve a project {}",
+        project_uri
+    );
+    let view: ProjectView = response.json().await?;
+    assert!(
+        view.parts().is_empty(),
+        "the base projects must not have any parts"
+    );
     Ok(())
 }
 
@@ -83,26 +100,19 @@ async fn view_project(
     Ok(project_view)
 }
 
-async fn create_project(test_server: &TestServer) -> anyhow::Result<String> {
-    let project_request = RegisterProjectRequest::random();
-    let create_project_uri = test_server.uri("/v1/projects");
-
-    let rest_client = reqwest::Client::new();
-    let create_project_response = rest_client
-        .post(create_project_uri)
-        .header("Content-Type", "application/json")
-        .header("Accept", "application/json")
-        .json(&project_request)
-        .send()
-        .await?;
-
+async fn given_new_project(
+    test_server: &TestServer,
+    rest_client: &reqwest::Client,
+) -> anyhow::Result<String> {
+    let create_project_payload = CreateProjectPayload::default();
+    let response = create_project(test_server, rest_client, &create_project_payload).await?;
     assert_eq!(
-        create_project_response.status(),
+        response.status(),
         StatusCode::CREATED,
-        "the service did not respond with created status"
+        "failed to create a project"
     );
 
-    Ok(create_project_response
+    Ok(response
         .headers()
         .get("location")
         .ok_or(anyhow::Error::msg("no project ID in location header"))?
