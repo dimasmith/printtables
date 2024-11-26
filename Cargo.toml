@@ -34,4 +34,4 @@ dotenvy = "0.15.7"
 
 [dev-dependencies]
 reqwest = { version = "0.12", features = [ "json" ] }
-fake = "2.10.0"
+fake = "3"
