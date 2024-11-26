@@ -1,8 +1,6 @@
 use crate::server::start_test_server;
 use reqwest::StatusCode;
 
-mod server;
-
 #[tokio::test]
 async fn health_endpoint_responds_with_200() -> anyhow::Result<()> {
     let test_server = start_test_server().await?;
