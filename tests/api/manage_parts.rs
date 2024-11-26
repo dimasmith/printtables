@@ -1,14 +1,9 @@
-use crate::server::project::{create_project, view_project_by_uri, CreateProjectPayload};
+use crate::server::project::CreateProjectPayload;
 use crate::server::{start_test_server, TestServer};
 use fake::{faker::name::en::Name, Fake};
 use printtables::projects::view::project::ProjectView;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Serialize)]
-struct RegisterProjectRequest {
-    name: String,
-}
 
 #[derive(Debug, Serialize)]
 struct RegisterPartRequest {
@@ -26,8 +21,8 @@ async fn register_project_and_set_parts() -> anyhow::Result<()> {
     let test_server = start_test_server().await?;
     let rest_client = reqwest::Client::new();
 
-    let project_uri = given_new_project(&test_server, &rest_client).await?;
-    ensure_project_have_no_parts(&test_server, &rest_client, &project_uri).await?;
+    let project_uri = given_new_project(&test_server).await?;
+    ensure_project_have_no_parts(&test_server, &project_uri).await?;
     let test_part = RegisterPartRequest::random();
     let part_id = create_part(&test_server, &test_part).await?;
 
@@ -52,7 +47,7 @@ async fn register_project_and_set_parts() -> anyhow::Result<()> {
 
     assert_eq!(update_parts_response.status(), reqwest::StatusCode::OK);
 
-    let project_view = view_project(&test_server, &rest_client, &project_uri).await?;
+    let project_view = view_project(&test_server, &project_uri).await?;
     assert_eq!(
         project_view.parts().len(),
         1,
@@ -68,10 +63,9 @@ async fn register_project_and_set_parts() -> anyhow::Result<()> {
 
 async fn ensure_project_have_no_parts(
     test_server: &TestServer,
-    rest_client: &reqwest::Client,
     project_uri: &str,
 ) -> anyhow::Result<()> {
-    let response = view_project_by_uri(test_server, rest_client, project_uri).await?;
+    let response = test_server.view_project_by_uri(project_uri).await?;
     assert_eq!(
         response.status(),
         StatusCode::OK,
@@ -86,23 +80,15 @@ async fn ensure_project_have_no_parts(
     Ok(())
 }
 
-async fn view_project(
-    test_server: &TestServer,
-    rest_client: &reqwest::Client,
-    project_location: &str,
-) -> anyhow::Result<ProjectView> {
-    let get_project_url = test_server.uri(project_location);
-    let view_project_response = rest_client.get(get_project_url).send().await?;
+async fn view_project(test_server: &TestServer, project_uri: &str) -> anyhow::Result<ProjectView> {
+    let view_project_response = test_server.view_project_by_uri(project_uri).await?;
     let project_view: ProjectView = view_project_response.json().await?;
     Ok(project_view)
 }
 
-async fn given_new_project(
-    test_server: &TestServer,
-    rest_client: &reqwest::Client,
-) -> anyhow::Result<String> {
+async fn given_new_project(test_server: &TestServer) -> anyhow::Result<String> {
     let create_project_payload = CreateProjectPayload::default();
-    let response = create_project(test_server, rest_client, &create_project_payload).await?;
+    let response = test_server.create_project(&create_project_payload).await?;
     assert_eq!(
         response.status(),
         StatusCode::CREATED,
@@ -163,13 +149,6 @@ async fn create_part(
     );
 
     Ok(part_view.id)
-}
-
-impl RegisterProjectRequest {
-    fn random() -> Self {
-        let name = Name().fake();
-        Self { name }
-    }
 }
 
 impl RegisterPartRequest {

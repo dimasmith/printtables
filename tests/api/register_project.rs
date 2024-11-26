@@ -1,36 +1,15 @@
-use crate::server::start_test_server;
-use fake::{faker::name::en::Name, Fake};
-use printtables::server::rest::ValidationMessage;
-use reqwest::{Client, StatusCode};
-use serde::{Deserialize, Serialize};
+use crate::server::{project::CreateProjectPayload, start_test_server};
+use printtables::{projects::view::project::ProjectView, server::rest::ValidationMessage};
+use reqwest::StatusCode;
 use uuid::Uuid;
-
-#[derive(Debug, Deserialize, PartialEq)]
-struct ProjectView {
-    id: String,
-    name: String,
-}
-
-#[derive(Debug, Serialize)]
-struct RegisterProjectRequest {
-    name: String,
-}
 
 #[tokio::test]
 async fn register_and_view_project() -> anyhow::Result<()> {
     let test_server = start_test_server().await?;
 
-    let project_request = RegisterProjectRequest::random();
-    let create_project_uri = test_server.uri("/v1/projects");
+    let project_request = CreateProjectPayload::default();
 
-    let rest_client = reqwest::Client::new();
-    let create_proect_response = rest_client
-        .post(create_project_uri)
-        .header("Content-Type", "application/json")
-        .header("Accept", "application/json")
-        .json(&project_request)
-        .send()
-        .await?;
+    let create_proect_response = test_server.create_project(&project_request).await?;
 
     assert_eq!(
         create_proect_response.status(),
@@ -44,13 +23,7 @@ async fn register_and_view_project() -> anyhow::Result<()> {
         .ok_or(anyhow::Error::msg("no project ID in location header"))?
         .to_str()?;
 
-    let get_project_url = test_server.uri(project_location);
-
-    let view_project_response = rest_client
-        .get(get_project_url)
-        .header("Accept", "application/json")
-        .send()
-        .await?;
+    let view_project_response = test_server.view_project_by_uri(project_location).await?;
 
     assert_eq!(
         view_project_response.status(),
@@ -60,7 +33,8 @@ async fn register_and_view_project() -> anyhow::Result<()> {
 
     let project_view = view_project_response.json::<ProjectView>().await?;
     assert_eq!(
-        &project_view.name, &project_request.name,
+        &project_view.name(),
+        &project_request.name(),
         "project name is not the same as created project name"
     );
 
@@ -73,14 +47,8 @@ async fn viewing_missing_project_responds_404() -> anyhow::Result<()> {
 
     let fake_id = Uuid::now_v7();
     let project_uri = format!("/v1/projects/{}", fake_id);
-    let project_uri = test_server.uri(&project_uri);
 
-    let rest_client = Client::new();
-    let response = rest_client
-        .get(project_uri)
-        .header("Accept", "application/json")
-        .send()
-        .await?;
+    let response = test_server.view_project_by_uri(&project_uri).await?;
 
     assert_eq!(
         response.status(),
@@ -95,28 +63,19 @@ async fn viewing_missing_project_responds_404() -> anyhow::Result<()> {
 async fn register_invalid_project() -> anyhow::Result<()> {
     let test_server = start_test_server().await?;
 
-    let project_request = RegisterProjectRequest::invalid_name();
-    let create_project_uri = test_server.uri("/v1/projects");
-
-    let rest_client = reqwest::Client::new();
-    let resp = rest_client
-        .post(create_project_uri)
-        .header("Content-Type", "application/json")
-        .header("Accept", "application/json")
-        .json(&project_request)
-        .send()
-        .await?;
+    let project_with_empty_name = CreateProjectPayload::new("");
+    let response = test_server.create_project(&project_with_empty_name).await?;
 
     assert_eq!(
-        resp.status(),
+        response.status(),
         StatusCode::BAD_REQUEST,
         "the service did not reject invalid project payload"
     );
 
-    let err_message: ValidationMessage = resp.json().await?;
+    let err_message: ValidationMessage = response.json().await?;
     let first_err = err_message
         .errors
-        .get(0)
+        .first()
         .expect("validation message must contain entries");
 
     assert!(
@@ -126,17 +85,4 @@ async fn register_invalid_project() -> anyhow::Result<()> {
     assert_eq!(first_err.attribute(), "name");
 
     Ok(())
-}
-
-impl RegisterProjectRequest {
-    fn random() -> Self {
-        let name = Name().fake();
-        Self { name }
-    }
-
-    fn invalid_name() -> Self {
-        Self {
-            name: "".to_string(),
-        }
-    }
 }
