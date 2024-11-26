@@ -1,12 +1,9 @@
+use crate::rest::project::{create_project, view_project_by_uri, CreateProjectPayload};
+use crate::server::{start_test_server, TestServer};
 use fake::{faker::name::en::Name, Fake};
 use printtables::projects::view::project::ProjectView;
 use reqwest::StatusCode;
-use rest::project::{create_project, view_project_by_uri, CreateProjectPayload};
 use serde::{Deserialize, Serialize};
-use server::{start_test_server, TestServer};
-
-mod rest;
-mod server;
 
 #[derive(Debug, Serialize)]
 struct RegisterProjectRequest {
