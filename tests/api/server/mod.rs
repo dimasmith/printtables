@@ -1,3 +1,4 @@
+pub mod inventory;
 pub mod project;
 pub mod test_server;
 
