@@ -14,6 +14,12 @@ pub struct RegisterPartPayload {
 
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
+pub struct CreatePartResponsePayload {
+    pub id: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct ViewPartPayload {
     pub id: String,
     pub name: String,
