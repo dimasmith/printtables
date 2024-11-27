@@ -1,42 +1,38 @@
 use crate::server::{
-    inventory::{RegisterPartPayload, ViewPartPayload},
+    inventory::{CreatePartResponsePayload, RegisterPartPayload, ViewPartPayload},
+    rest::{CreatedResponse, OkResponse},
     start_test_server,
 };
 use printtables::server::rest::ValidationMessage;
 use reqwest::StatusCode;
 use uuid::Uuid;
 
+type CreateResponse = CreatedResponse<CreatePartResponsePayload>;
+type ViewPartResponse = OkResponse<ViewPartPayload>;
+
 #[tokio::test]
 async fn register_and_view_part() -> anyhow::Result<()> {
     let test_server = start_test_server().await?;
 
     let create_part_payload = RegisterPartPayload::default();
-    let create_part_response = test_server.register_part(&create_part_payload).await?;
+    let response = test_server.register_part(&create_part_payload).await?;
+    let create_response = CreateResponse::from(response).await;
 
-    assert_eq!(
-        create_part_response.status(),
-        StatusCode::CREATED,
-        "the service did not respond with created status"
+    let payload = create_response.payload();
+    assert!(
+        !payload.id.is_empty(),
+        "missing part identifier on creation"
     );
 
-    let part_uri = create_part_response
-        .headers()
-        .get("location")
-        .ok_or(anyhow::Error::msg("no part ID in location header"))?
-        .to_str()?;
+    let part_uri = &create_response.location;
 
-    let view_part_response = test_server.view_part_by_uri(part_uri).await?;
+    let response = test_server.view_part_by_uri(part_uri).await?;
+    let view_part_response = ViewPartResponse::from(response).await;
 
+    let view_part_payload = view_part_response.payload();
     assert_eq!(
-        view_part_response.status(),
-        StatusCode::OK,
-        "the newly created part must be found"
-    );
-
-    let project_view = view_part_response.json::<ViewPartPayload>().await?;
-    assert_eq!(
-        &project_view.name,
-        &create_part_payload.name(),
+        view_part_payload.name,
+        create_part_payload.name(),
         "part name is not the same as created part name"
     );
 
