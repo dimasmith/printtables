@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            select bom.part_id as \"part_id: Uuid\", bom.quantity as \"quantity: u32\", part.name as part_name \n            from bom \n            join part on part.id = bom.part_id\n            where bom.project_id = ?\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "part_id: Uuid",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "quantity: u32",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "part_name",
+        "ordinal": 2,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "4ee735c3afb5f2a5b432c728112e3e99b8f3bb4634e31a851d3d77af2b2a5137"
+}

@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        select bom.part_id as \"part_id: Uuid\", bom.quantity as \"quantity: u32\"\n        from bom\n        where bom.project_id = ?\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "part_id: Uuid",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "quantity: u32",
+        "ordinal": 1,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "901f55b0dfe50e968a807425af98b26000f1f3b01b7f7ee34455f0d53a55f38c"
+}

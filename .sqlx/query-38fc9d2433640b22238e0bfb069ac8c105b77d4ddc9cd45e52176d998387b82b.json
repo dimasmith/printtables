@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            select id as \"id: Uuid\", name \n            from project\n            where id = ?\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id: Uuid",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "38fc9d2433640b22238e0bfb069ac8c105b77d4ddc9cd45e52176d998387b82b"
+}

@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "delete from bom where project_id = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "8118c784ec6322f7e21bc862cfa39e3dd000dbfed43db23ab7becb0404b463bc"
+}
