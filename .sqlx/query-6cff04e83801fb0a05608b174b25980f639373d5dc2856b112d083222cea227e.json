@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        update project set name = ? where id = ?\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "6cff04e83801fb0a05608b174b25980f639373d5dc2856b112d083222cea227e"
+}

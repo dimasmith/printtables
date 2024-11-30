@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            insert into bom (project_id, part_id, quantity) values (?, ?, ?)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "3a48d73a8673246b47106666b240c735990fc4094820434df245c1d183d3e357"
+}
