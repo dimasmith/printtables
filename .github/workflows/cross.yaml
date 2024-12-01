@@ -33,3 +33,7 @@ jobs:
         
       - name: Build binary for ${{ matrix.platform.name }}
         run: cross build --target ${{ matrix.platform.target }} --locked --release
+
+      - name: Test on the ${{ matrix.platform.name}}
+        run: cross test --target ${{ matrix.platform.target }}
+
